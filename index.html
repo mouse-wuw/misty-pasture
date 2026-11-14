@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+  <meta name="theme-color" content="#07110d" />
+  <meta name="description" content="云栖智慧牧场 · Three.js 微缩生态数字孪生大屏" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='12' fill='%230a1a14'/%3E%3Cpath d='M24 7c7.4 0 13.4 5.6 13.4 12.8 0 8.1-7.1 15.1-13.4 19.7-6.3-4.6-13.4-11.6-13.4-19.7C10.6 12.6 16.6 7 24 7Z' stroke='%238fe3c8' stroke-width='1.5' fill='none'/%3E%3Cpath d='M24 32c-1.8-3-2.4-6.6-1.2-9.8 1-2.5 3-4 5.5-4.7 1 4.1.3 9.1-4.3 14.5Z' fill='%238fe3c8'/%3E%3C/svg%3E" />
+  <title>云栖智慧牧场 · Misty Pasture</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="./css/styles.css?v=2" />
+</head>
+<body data-phase="dusk">
+  <div id="app">
+    <div class="atmosphere" aria-hidden="true">
+      <div class="atmosphere-orb orb-one"></div>
+      <div class="atmosphere-orb orb-two"></div>
+      <div class="atmosphere-orb orb-three"></div>
+      <div class="atmosphere-grid"></div>
+      <div class="atmosphere-grain"></div>
+      <div class="atmosphere-vignette"></div>
+    </div>
+
+    <main class="scene-stage" aria-label="云栖牧场三维微缩场景">
+      <div class="scene-container" id="sceneContainer">
+        <canvas id="sceneCanvas"></canvas>
+        <div class="scene-labels" id="sceneLabels"></div>
+      </div>
+      <div class="scene-fade" aria-hidden="true"></div>
+    </main>
+
+    <header class="topbar" id="topbar">
+      <a class="brand" href="#" data-view="roam" aria-label="返回牧场场景">
+        <span class="brand-mark" id="brandMark"></span>
+        <span class="brand-copy">
+          <strong>云栖牧场</strong>
+          <small>MISTY PASTURE · DIGITAL TWIN</small>
+        </span>
+      </a>
+
+      <nav class="main-nav" id="mainNav" aria-label="主要导航">
+        <button class="nav-link is-active" type="button" data-view="roam"><span class="nav-pip"></span>场景漫游</button>
+        <button class="nav-link" type="button" data-view="ops">运营大屏</button>
+        <button class="nav-link" type="button" data-view="environment">环境监测</button>
+        <button class="nav-link" type="button" data-view="milk">产奶健康</button>
+        <button class="nav-link" type="button" data-view="work">防疫巡检</button>
+        <button class="nav-link" type="button" data-view="reports">报表中心</button>
+        <button class="nav-link" type="button" data-view="models">对象模型</button>
+      </nav>
+
+      <div class="topbar-right">
+        <div class="header-clock" title="牧场模拟时间">
+          <span class="header-date" id="headerDate"></span>
+          <span class="header-time-row">
+            <span class="header-phase-icon" id="headerPhaseIcon"></span>
+            <strong id="headerClock">17:10</strong>
+            <em id="headerPhase">黄昏</em>
+          </span>
+        </div>
+        <span class="header-divider"></span>
+        <span class="live-signal"><i></i><span>LIVE</span></span>
+        <button class="icon-button alarm-button" type="button" id="alarmButton" aria-label="打开环境告警中心">
+          <span id="alarmBellIcon"></span>
+          <b class="notification-count" id="alarmCount" hidden>1</b>
+        </button>
+        <button class="topbar-action" type="button" id="controlButton">
+          <span id="controlGearIcon"></span>
+          <span>场景控制</span>
+        </button>
+      </div>
+    </header>
+
+    <aside class="hud-panel overview-panel" id="overviewPanel" aria-label="牧场概览"></aside>
+    <aside class="hud-panel focus-panel" id="focusPanel" aria-label="个体档案"></aside>
+
+    <div class="explore-caption" id="exploreCaption">
+      <span class="caption-dot"></span>
+      <span>云栖生态岛 · 720 m</span>
+      <span class="caption-sep"></span>
+      <span>拖拽旋转</span>
+      <span>滚轮缩放</span>
+      <span>点击牛舍或奶牛探索</span>
+    </div>
+
+    <div class="toast-stack" id="toastStack" aria-live="polite"></div>
+
+    <section class="view-overlay" id="viewOverlay" aria-hidden="true">
+      <button class="overlay-close" type="button" id="closeViewButton" aria-label="关闭当前页面">
+        <span data-icon="close"></span>
+      </button>
+      <div class="view-content" id="viewContent"></div>
+    </section>
+
+    <aside class="drawer control-drawer" id="controlDrawer" aria-label="场景控制面板" aria-hidden="true">
+      <div class="drawer-head">
+        <div>
+          <span class="drawer-kicker">ATMOSPHERE ENGINE</span>
+          <h2>场景控制台</h2>
+        </div>
+        <button class="icon-button drawer-close" type="button" data-close-drawer="control" aria-label="关闭场景控制">
+          <span data-icon="close"></span>
+        </button>
+      </div>
+      <div class="drawer-body" id="controlBody"></div>
+    </aside>
+
+    <aside class="drawer alarm-drawer" id="alarmDrawer" aria-label="环境告警中心" aria-hidden="true">
+      <div class="drawer-head">
+        <div>
+          <span class="drawer-kicker">ENVIRONMENT LINKAGE</span>
+          <h2>环境告警中心</h2>
+        </div>
+        <button class="icon-button drawer-close" type="button" data-close-drawer="alarm" aria-label="关闭告警中心">
+          <span data-icon="close"></span>
+        </button>
+      </div>
+      <div class="drawer-body alarm-body" id="alarmBody"></div>
+    </aside>
+
+    <div class="modal-root" id="modalRoot" aria-hidden="true">
+      <div class="modal-backdrop" data-close-modal></div>
+      <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <div class="modal-head">
+          <div>
+            <span class="modal-kicker" id="modalKicker">PASTURE WORKFLOW</span>
+            <h2 id="modalTitle">录入记录</h2>
+            <p id="modalSubtitle"></p>
+          </div>
+          <button class="icon-button modal-close" type="button" data-close-modal aria-label="关闭弹窗">
+            <span data-icon="close"></span>
+          </button>
+        </div>
+        <div class="modal-body" id="modalBody"></div>
+      </div>
+    </div>
+
+    <div class="boot-screen" id="bootScreen">
+      <div class="boot-inner">
+        <div class="boot-mark" id="bootLogo"></div>
+        <span class="boot-kicker">A MAGICAL MINIATURE DAIRY</span>
+        <h1>云栖智慧牧场</h1>
+        <p>正在唤醒雾中的生态岛</p>
+        <div class="boot-progress"><span id="bootProgress"></span></div>
+        <div class="boot-meta">
+          <span id="bootStatus">构建牛舍、牛群与环控设备…</span>
+          <strong id="bootPercent">0%</strong>
+        </div>
+      </div>
+      <div class="boot-foot">
+        <span>THREE.JS · WEBGL</span>
+        <span>等距微缩 / 昼夜 / 体积光</span>
+      </div>
+    </div>
+
+    <div class="error-screen" id="errorScreen" hidden>
+      <div>
+        <span class="error-kicker">RENDER INTERRUPTED</span>
+        <h2>牧场场景未能正常载入</h2>
+        <p id="errorMessage">请使用支持 WebGL 的现代浏览器，并刷新页面重试。</p>
+        <button class="btn btn-primary" onclick="location.reload()">重新加载</button>
+      </div>
+    </div>
+
+    <div class="print-area" id="printArea"></div>
+  </div>
+
+  <script src="./vendor/echarts/echarts.min.js"></script>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "./vendor/three/three.module.js",
+        "three/addons/": "./vendor/three/addons/"
+      }
+    }
+  </script>
+  <script type="module" src="./js/app.js?v=2"></script>
+</body>
+</html>
